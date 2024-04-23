@@ -102,12 +102,12 @@ config.keys = {
   },
   {
     key = 'a',
-    mods = 'CTRL|SHIFT',
+    mods = 'CTRL',
     action = wezterm.action.ActivateTabRelative(-1)
   },
   {
     key = 'd',
-    mods = 'CTRL|SHIFT',
+    mods = 'CTRL',
     action = wezterm.action.ActivateTabRelative(1)
   },
   ---
