@@ -7,11 +7,13 @@
 ---
 --- Corsage's Wezterm config.
 
-local NAME = 'crsg'
-
--- Wezterm config.
 local wezterm = require 'wezterm'
 local config = wezterm.config_builder()
+
+local USER = {
+  name = 'crsg',
+  icon = wezterm.nerdfonts.md_flower_tulip
+}
 
 ---
 --- Helper functions.
@@ -25,6 +27,11 @@ end
 -- Get the basename.
 local basename = function(s)
   return s:match("[^\\/:]*$")
+end
+
+-- Snakecase to UPPER Title Case.
+local snakecase_to_upper_titlecase = function(s)
+  return (s:gsub("_", " "):upper())
 end
 
 ---
@@ -51,7 +58,9 @@ config.initial_rows = 50
 --- 2. CTRL affects tabs.
 --- 3. CTRL + SHIFT affects the window/workspace.
 --- 4. WASD controls all travel.
+--- 5. Space enables LEADER keys.
 ---
+config.leader = { key = 'Space', mods = 'CTRL|SHIFT', timeout_milliseconds = 2000 }
 config.keys = {
   ---
   --- Window / Workspace.
@@ -65,14 +74,38 @@ config.keys = {
     key = 'F11',
     action = wezterm.action.ToggleFullScreen,
   },
+  -- {
+  --   key = 'n',
+  --   mods = 'CTRL|SHIFT',
+  --   action = wezterm.action.SpawnWindow,
+  -- },
   {
     key = 'n',
     mods = 'CTRL|SHIFT',
-    action = wezterm.action.SpawnWindow,
+    action = wezterm.action.PromptInputLine {
+      description = wezterm.format {
+        { Attribute = { Intensity = 'Bold' } },
+        { Foreground = { AnsiColor = 'Fuchsia' } },
+        { Text = 'Enter name for new workspace' },
+      },
+      action = wezterm.action_callback(function(window, pane, line)
+        -- line will be `nil` if they hit escape without entering anything
+        -- An empty string if they just hit enter
+        -- Or the actual line of text they wrote
+        if line then
+          window:perform_action(
+            wezterm.action.SwitchToWorkspace {
+              name = line,
+            },
+            pane
+          )
+        end
+      end),
+    },
   },
   {
     key = 'Space',
-    mods = 'CTRL|SHIFT',
+    mods = 'CTRL',
     action = wezterm.action.ShowLauncherArgs {
       flags = 'FUZZY|WORKSPACES',
     },
@@ -148,20 +181,54 @@ config.keys = {
     mods = 'ALT',
     action = wezterm.action.ActivatePaneDirection 'Down',
   },
+  ---
+  --- Leader.
+  ---
+  {
+    key = 'r',
+    mods = 'LEADER',
+    action = wezterm.action.ActivateKeyTable {
+      name = 'resize_pane',
+      one_shot = false,
+    },
+  },
 }
 
---- F1 through F8 to activate that tab.
 for i = 1, 8 do
+  --- F1 through F8 to activate that tab.
   table.insert(config.keys, {
     key = 'F' .. tostring(i),
     action = wezterm.action.ActivateTab(i - 1),
   })
 end
 
+---
+--- Key Tables.
+--- Shortcuts for our shortcuts.
+---
+config.key_tables = {
+  resize_pane = {
+    { key = 'Escape', action = 'PopKeyTable' },
+  }
+}
+
 
 ---
 --- Colors & Appearance.
 ---
+
+-- Colors taken from to match theme.
+-- https://github.com/folke/tokyonight.nvim/blob/main/lua/tokyonight/colors.lua
+local COLORS = {
+  Red = "#f7768e",
+  Green = "#9ece6a",
+  Purple = "#9d7cd8",
+  Orange = "#ff9e64",
+  Yellow = "#e0af68",
+  Teal = "#1abc9c",
+  Blue = "#7aa2f7",
+  Cyan = "#7dcfff"
+}
 
 config.color_scheme = 'Tokyo Night'
 config.font = wezterm.font_with_fallback({
@@ -171,7 +238,7 @@ config.font = wezterm.font_with_fallback({
 config.background = {
   {
     source = {
-      File = { path = wezterm.config_dir .. "\\background.jpg" },
+      File = { path = wezterm.config_dir .. "\\4.jpg" },
     },
     opacity = 0.9,
     width = "100%",
@@ -196,62 +263,65 @@ config.tab_bar_at_bottom = true
 local home = normalize(wezterm.home_dir)
 
 wezterm.on("update-status", function(window, pane)
-    -- Workspace name
-    local stat = window:active_workspace()
-    local stat_color = "#f7768e"
+  local stat = {
+    label = window:active_workspace(),
+    color = COLORS.Red,
+    icon = wezterm.nerdfonts.oct_table
+  };
 
-    -- It's a little silly to have workspace name all the time
-    -- Utilize this to display LDR or current key table name
-    if window:active_key_table() then
-      stat = window:active_key_table()
-      stat_color = "#7dcfff"
-    end
-    if window:leader_is_active() then
-      stat = "LDR"
-      stat_color = "#bb9af7"
-    end
+  if window:active_key_table() then
+    stat.label = snakecase_to_upper_titlecase(window:active_key_table())
+    stat.color = COLORS.Green
+    stat.icon = wezterm.nerdfonts.md_table
+  elseif window:leader_is_active() then
+    stat.label = "LEADER"
+    stat.color = COLORS.Teal
+    stat.icon = wezterm.nerdfonts.md_layers
+  end
 
-    -- Current working directory
-    local cwd = pane:get_current_working_dir()
-    cwd = cwd and normalize(cwd.file_path) or ""
+  -- Current working directory
+  local cwd = pane:get_current_working_dir()
+  cwd = cwd and normalize(cwd.file_path) or ""
 
-    if cwd == home then
-      cwd = "Home"
-    else
-      cwd = basename(cwd)
-    end
+  if cwd == home then
+    cwd = "Home"
+  else
+    cwd = basename(cwd)
+  end
 
-    -- Current command
-    local cmd = pane:get_foreground_process_name()
-    cmd = cmd and basename(cmd) or "Unknown"
+  -- Current command
+  local cmd = pane:get_foreground_process_name()
+  cmd = cmd and basename(cmd) or "Unknown"
 
-    -- Time
-    local time = wezterm.strftime("%H:%M")
+  -- Time
+  local time = wezterm.strftime("%H:%M")
 
-    -- Left status (left of the tab line)
-    window:set_left_status(wezterm.format({
-      { Foreground = { Color = stat_color } },
-      { Text = "  " },
-      { Text = wezterm.nerdfonts.oct_table .. "  " .. stat },
-      { Text = " |" },
-    }))
+  -- Left status (left of the tab line)
+  window:set_left_status(wezterm.format({
+    { Foreground = { Color = stat.color } },
+    { Text = "  " },
+    { Text = stat.icon .. "  " .. stat.label },
+    { Text = " |" },
+  }))
 
-    -- Right status
-    window:set_right_status(wezterm.format({
-      -- Wezterm has a built-in nerd fonts
-      -- https://wezfurlong.org/wezterm/config/lua/wezterm/nerdfonts.html
-      { Text = wezterm.nerdfonts.md_flower_tulip .. " " .. NAME },
-      { Text = " | " },
-      { Text = wezterm.nerdfonts.md_folder .. "  " .. cwd },
-      { Text = " | " },
-      { Foreground = { Color = "#e0af68" } },
-      { Text = wezterm.nerdfonts.fa_code .. "  " .. cmd },
-      "ResetAttributes",
-      { Text = " | " },
-      { Text = wezterm.nerdfonts.md_clock .. "  " .. time },
-      { Text = "  " },
-    }))
-  end)
+  -- Right status
+  window:set_right_status(wezterm.format({
+    -- Wezterm has a built-in nerd fonts
+    -- https://wezfurlong.org/wezterm/config/lua/wezterm/nerdfonts.html
+    { Foreground = { Color = COLORS.Purple } },
+    { Text = USER.icon .. " " .. USER.name },
+    "ResetAttributes",
+    { Text = " | " },
+    { Text = wezterm.nerdfonts.md_folder .. "  " .. cwd },
+    { Text = " | " },
+    { Foreground = { Color = COLORS.Yellow } },
+    { Text = wezterm.nerdfonts.fa_code .. "  " .. cmd },
+    "ResetAttributes",
+    { Text = " | " },
+    { Text = wezterm.nerdfonts.md_clock .. "  " .. time },
+    { Text = "  " },
+  }))
+end)
 
 -- and finally, return the configuration to wezterm
 return config
