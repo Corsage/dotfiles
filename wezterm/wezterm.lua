@@ -38,7 +38,7 @@ end
 --- Defaults.
 ---
 
-local shell = 'C:/Program Files/nu/bin/nu.exe'
+local shell = 'C:\\Users\\Corsage\\.cargo\\bin\\nu.exe'
 config.default_prog = { shell }
 config.default_workspace = "main"
 config.window_close_confirmation = "AlwaysPrompt"
@@ -185,11 +185,11 @@ config.keys = {
   --- Leader.
   ---
   {
-    key = 'r',
+    key = 'p',
     mods = 'LEADER',
     action = wezterm.action.ActivateKeyTable {
-      name = 'resize_pane',
-      one_shot = false,
+      name = 'projects',
+      one_shot = true,
     },
   },
 }
@@ -207,8 +207,47 @@ end
 --- Shortcuts for our shortcuts.
 ---
 config.key_tables = {
-  resize_pane = {
-    { key = 'Escape', action = 'PopKeyTable' },
+  projects = {
+    {
+      key = 'Escape',
+      action = 'PopKeyTable'
+    },
+    {
+      key = 'Space',
+      action = wezterm.action_callback(function(window, pane)
+        local projects = require 'projects'
+
+        window:perform_action(
+          wezterm.action.InputSelector {
+            action = wezterm.action_callback(
+              function(inner_window, inner_pane, id, label)
+                if not id and not label then
+                  wezterm.log_info 'cancelled'
+                else
+                  wezterm.log_info('id = ' .. id)
+                  wezterm.log_info('label = ' .. label)
+                  inner_window:perform_action(
+                    wezterm.action.SwitchToWorkspace {
+                      name = 'PROJECT: ' .. label,
+                      spawn = {
+                        label = label,
+                        cwd = id,
+                      },
+                    },
+                    inner_pane
+                  )
+                end
+              end
+            ),
+            title = 'Choose Project Workspace',
+            choices = projects,
+            fuzzy = true,
+            fuzzy_description = 'Fuzzy find and/or make a project workspace',
+          },
+          pane
+        )
+      end),
+    },
   }
 }
 
