@@ -304,7 +304,8 @@ local COLORS = {
 
 config.color_scheme = 'Tokyo Night'
 config.font = wezterm.font_with_fallback({
-    { family = "FiraCode Nerd Font", scale = 0.8, weight = "Medium", },
+  { family = 'JetBrains Mono', scale = 0.85, weight = 'Medium' },
+  { family = "FiraCode Nerd Font", scale = 0.85, weight = "Medium", },
 })
 
 config.background = {
