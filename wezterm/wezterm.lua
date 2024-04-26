@@ -312,7 +312,7 @@ config.background = {
 
 config.window_decorations = "RESIZE"
 
--- Dim inactive panes
+-- Dim inactive panes.
 config.inactive_pane_hsb = {
     saturation = 0.25,
     brightness = 0.5
@@ -333,7 +333,11 @@ wezterm.on("update-status", function(window, pane)
     icon = wezterm.nerdfonts.oct_table
   };
 
-  if ZEN_MODE then
+  if window:leader_is_active() then
+    stat.label = "LEADER"
+    stat.color = COLORS.Teal
+    stat.icon = wezterm.nerdfonts.md_layers
+  elseif ZEN_MODE then
     stat.label = "ZEN MODE"
     stat.color = COLORS.Orange
     stat.icon = wezterm.nerdfonts.md_flower_poppy
@@ -341,13 +345,9 @@ wezterm.on("update-status", function(window, pane)
     stat.label = snakecase_to_upper_titlecase(window:active_key_table())
     stat.color = COLORS.Green
     stat.icon = wezterm.nerdfonts.md_table
-  elseif window:leader_is_active() then
-    stat.label = "LEADER"
-    stat.color = COLORS.Teal
-    stat.icon = wezterm.nerdfonts.md_layers
   end
 
-  -- Current working directory
+  -- Current Working Directory.
   local cwd = pane:get_current_working_dir()
   cwd = cwd and normalize(cwd.file_path) or ""
 
@@ -357,14 +357,14 @@ wezterm.on("update-status", function(window, pane)
     cwd = basename(cwd)
   end
 
-  -- Current command
-  local cmd = pane:get_foreground_process_name()
-  cmd = cmd and basename(cmd) or "Unknown"
+  -- Current Process.
+  local proc = pane:get_foreground_process_name()
+  proc = proc and basename(proc) or "Unknown"
 
-  -- Time
+  -- Time.
   local time = wezterm.strftime("%H:%M")
 
-  -- Left status (left of the tab line)
+  -- Left Status.
   window:set_left_status(wezterm.format({
     { Foreground = { Color = stat.color } },
     { Text = "  " },
@@ -373,10 +373,8 @@ wezterm.on("update-status", function(window, pane)
     { Text = " |" },
   }))
 
-  -- Right status
+  -- Right Status.
   window:set_right_status(wezterm.format({
-    -- Wezterm has a built-in nerd fonts
-    -- https://wezfurlong.org/wezterm/config/lua/wezterm/nerdfonts.html
     { Foreground = { Color = COLORS.Purple } },
     { Text = USER.icon .. " " .. USER.name },
     "ResetAttributes",
@@ -384,7 +382,7 @@ wezterm.on("update-status", function(window, pane)
     { Text = wezterm.nerdfonts.md_folder .. "  " .. cwd },
     { Text = " | " },
     { Foreground = { Color = COLORS.Yellow } },
-    { Text = wezterm.nerdfonts.fa_code .. "  " .. cmd },
+    { Text = wezterm.nerdfonts.fa_code .. "  " .. proc },
     "ResetAttributes",
     { Text = " | " },
     { Text = wezterm.nerdfonts.md_clock .. "  " .. time },
@@ -407,5 +405,5 @@ wezterm.on('toggle_zen_mode', function(window, pane)
   window:set_config_overrides(overrides)
 end)
 
--- and finally, return the configuration to wezterm
+-- Return the configuration to Wezterm.
 return config
