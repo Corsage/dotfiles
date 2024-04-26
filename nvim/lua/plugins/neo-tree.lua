@@ -7,7 +7,17 @@ return {
       "MunifTanjim/nui.nvim",
     },
     config = function()
-        vim.keymap.set("n", "<C-k>", ":Neotree filesystem reveal left<CR>", {})
-        vim.keymap.set("n", "<leader>bf", ":Neotree buffers reveal float<CR>", {})
+      -- require("neo-tree").setup({
+      --   mappings = {
+      --     ['n'] = {
+      --       "add",
+      --       config = {
+      --         show_path = "none"
+      --       }
+      --     },
+      --   },
+      -- })
+
+      vim.keymap.set("n", "<C-e>", ":Neotree filesystem reveal left<CR>", {})
     end
 }
