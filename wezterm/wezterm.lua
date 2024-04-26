@@ -15,6 +15,13 @@ local USER = {
   icon = wezterm.nerdfonts.md_flower_tulip
 }
 
+local MODES = {
+  NORMAL = "NORMAL",
+  ZEN = "ZEN"
+}
+
+local current_mode = MODES.NORMAL;
+
 ---
 --- Helper functions.
 ---
@@ -32,6 +39,10 @@ end
 -- Snakecase to UPPER Title Case.
 local snakecase_to_upper_titlecase = function(s)
   return (s:gsub("_", " "):upper())
+end
+
+local is_nvim = function(s)
+  return s == "nvim" or s == "nvim.exe"
 end
 
 ---
@@ -69,7 +80,6 @@ config.initial_rows = 50
 
 config.leader = { key = 'Space', mods = 'CTRL|SHIFT', timeout_milliseconds = 2000 }
 
-local ZEN_MODE = false
 local keys = {
   ---
   --- Window / Workspace.
@@ -336,24 +346,28 @@ config.tab_bar_at_bottom = true
 local home = normalize(wezterm.home_dir)
 
 wezterm.on("update-status", function(window, pane)
-  local stat = {
-    label = window:active_workspace(),
-    color = COLORS.Red,
-    icon = wezterm.nerdfonts.oct_table
-  };
+  local stat = { }
 
   if window:leader_is_active() then
     stat.label = "LEADER"
     stat.color = COLORS.Teal
     stat.icon = wezterm.nerdfonts.md_layers
-  elseif ZEN_MODE then
-    stat.label = "ZEN MODE"
-    stat.color = COLORS.Orange
-    stat.icon = wezterm.nerdfonts.md_flower_poppy
   elseif window:active_key_table() then
     stat.label = snakecase_to_upper_titlecase(window:active_key_table())
     stat.color = COLORS.Green
     stat.icon = wezterm.nerdfonts.md_table
+  else
+    stat.label = window:active_workspace()
+    stat.color = COLORS.Red
+    stat.icon = wezterm.nerdfonts.oct_table
+  end
+
+  local mode = { label = current_mode }
+
+  if mode.label == MODES.ZEN then
+    mode.color = COLORS.Orange
+  else
+    mode.color = COLORS.Cyan
   end
 
   -- Current Working Directory.
@@ -379,6 +393,10 @@ wezterm.on("update-status", function(window, pane)
     { Text = "  " },
     { Text = stat.icon .. "  " .. stat.label },
     "ResetAttributes",
+    { Text = " | " },
+    { Foreground = { Color = mode.color } },
+    { Text = mode.label },
+    "ResetAttributes",
     { Text = " |" },
   }))
 
@@ -400,10 +418,15 @@ wezterm.on("update-status", function(window, pane)
 end)
 
 wezterm.on('toggle_zen_mode', function(window, pane)
-  ZEN_MODE = not ZEN_MODE
+  if current_mode == MODES.ZEN then
+    current_mode = MODES.NORMAL
+  else
+    current_mode = MODES.ZEN
+  end
+
   local overrides = window:get_config_overrides() or {}
 
-  if ZEN_MODE then
+  if current_mode == MODES.ZEN then
     overrides.keys = zen_mode_keys
     overrides.disable_default_key_bindings = true
   else
