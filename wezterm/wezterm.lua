@@ -216,11 +216,19 @@ for i = 1, 8 do
   })
 end
 
+---
+--- Zen Mode Keys.
+--- Provides a subset of keybindings to use.
+---
 local zen_mode_keys = {
   {
     key = 'z',
     mods = 'LEADER',
     action = wezterm.action.EmitEvent 'toggle_zen_mode',
+  },
+  {
+    key = 'F11',
+    action = wezterm.action.ToggleFullScreen,
   },
 }
 
