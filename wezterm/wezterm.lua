@@ -60,8 +60,17 @@ config.initial_rows = 50
 --- 4. WASD controls all travel.
 --- 5. Space enables LEADER keys.
 ---
+--- When Zen mode is active, a subset of these keybinds will work.
+--- Check `toggle_zen_mode` for details.
+---
+--- This is extremely helpful when dealing with other applications that may use
+--- similar keybinds and we do not want Wezterm to process it.
+---
+
 config.leader = { key = 'Space', mods = 'CTRL|SHIFT', timeout_milliseconds = 2000 }
-config.keys = {
+
+local ZEN_MODE = false
+local keys = {
   ---
   --- Window / Workspace.
   ---
@@ -192,15 +201,31 @@ config.keys = {
       one_shot = true,
     },
   },
+  {
+    key = 'z',
+    mods = 'LEADER',
+    action = wezterm.action.EmitEvent 'toggle_zen_mode',
+  }
 }
 
 for i = 1, 8 do
   --- F1 through F8 to activate that tab.
-  table.insert(config.keys, {
+  table.insert(keys, {
     key = 'F' .. tostring(i),
     action = wezterm.action.ActivateTab(i - 1),
   })
 end
+
+local zen_mode_keys = {
+  {
+    key = 'z',
+    mods = 'LEADER',
+    action = wezterm.action.EmitEvent 'toggle_zen_mode',
+  },
+}
+
+
+config.keys = keys
 
 ---
 --- Key Tables.
@@ -248,7 +273,7 @@ config.key_tables = {
         )
       end),
     },
-  }
+  },
 }
 
 
@@ -308,7 +333,11 @@ wezterm.on("update-status", function(window, pane)
     icon = wezterm.nerdfonts.oct_table
   };
 
-  if window:active_key_table() then
+  if ZEN_MODE then
+    stat.label = "ZEN MODE"
+    stat.color = COLORS.Orange
+    stat.icon = wezterm.nerdfonts.md_flower_poppy
+  elseif window:active_key_table() then
     stat.label = snakecase_to_upper_titlecase(window:active_key_table())
     stat.color = COLORS.Green
     stat.icon = wezterm.nerdfonts.md_table
@@ -340,6 +369,7 @@ wezterm.on("update-status", function(window, pane)
     { Foreground = { Color = stat.color } },
     { Text = "  " },
     { Text = stat.icon .. "  " .. stat.label },
+    "ResetAttributes",
     { Text = " |" },
   }))
 
@@ -360,6 +390,21 @@ wezterm.on("update-status", function(window, pane)
     { Text = wezterm.nerdfonts.md_clock .. "  " .. time },
     { Text = "  " },
   }))
+end)
+
+wezterm.on('toggle_zen_mode', function(window, pane)
+  ZEN_MODE = not ZEN_MODE
+  local overrides = window:get_config_overrides() or {}
+
+  if ZEN_MODE then
+    overrides.keys = zen_mode_keys
+    overrides.disable_default_key_bindings = true
+  else
+    overrides.keys = keys
+    overrides.disable_default_key_bindings = false
+  end
+
+  window:set_config_overrides(overrides)
 end)
 
 -- and finally, return the configuration to wezterm
