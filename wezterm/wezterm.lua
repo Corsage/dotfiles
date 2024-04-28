@@ -218,14 +218,6 @@ local keys = {
   }
 }
 
-for i = 1, 8 do
-  --- F1 through F8 to activate that tab.
-  table.insert(keys, {
-    key = 'F' .. tostring(i),
-    action = wezterm.action.ActivateTab(i - 1),
-  })
-end
-
 ---
 --- Zen Mode Keys.
 --- Provides a subset of keybindings to use.
@@ -241,6 +233,19 @@ local zen_mode_keys = {
     action = wezterm.action.ToggleFullScreen,
   },
 }
+
+for i = 1, 8 do
+  --- F1 through F8 to activate that tab.
+  table.insert(keys, {
+    key = 'F' .. tostring(i),
+    action = wezterm.action.ActivateTab(i - 1),
+  })
+
+  table.insert(zen_mode_keys, {
+    key = 'F' .. tostring(i),
+    action = wezterm.action.ActivateTab(i - 1),
+  })
+end
 
 
 config.keys = keys
