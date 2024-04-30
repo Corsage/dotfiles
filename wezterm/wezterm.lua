@@ -10,8 +10,6 @@
 local wezterm = require("wezterm")
 local config = wezterm.config_builder()
 
-local DIR_SEPERATOR = package.config:sub(1, 1)
-
 local USER = {
 	name = "crsg",
 	icon = wezterm.nerdfonts.md_flower_tulip,
@@ -324,7 +322,7 @@ config.font = wezterm.font_with_fallback({
 config.background = {
 	{
 		source = {
-			File = { path = wezterm.config_dir .. DIR_SEPERATOR .. "4.jpg" },
+			File = { path = wezterm.config_dir .. "/4.jpg" },
 		},
 		opacity = 0.9,
 		width = "100%",
