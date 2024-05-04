@@ -9,6 +9,9 @@ return {
 			vim.keymap.set("n", "<leader>fg", builtin.live_grep, {})
 			vim.keymap.set("n", "<leader>gq", builtin.git_branches, {})
 			vim.keymap.set("n", "<leader>gw", builtin.git_stash, {})
+
+			vim.keymap.set("n", "<C-f>", builtin.current_buffer_fuzzy_find, {})
+			vim.keymap.set("i", "<C-f>", builtin.current_buffer_fuzzy_find, {})
 		end,
 	},
 	{
