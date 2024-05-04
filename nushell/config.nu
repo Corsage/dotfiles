@@ -864,9 +864,3 @@ $env.config = {
         }
     ]
 }
-
-# Starship config.
-use ~/.cache/starship/init.nu
-
-# Common aliases.
-alias g = git
