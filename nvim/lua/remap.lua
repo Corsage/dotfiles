@@ -44,3 +44,6 @@ vim.keymap.set("i", "<S-z>", "<cmd>redo<CR>")
 
 -- Command palette.
 vim.keymap.set("n", "<C-P>", ":")
+
+-- Insert mode.
+vim.keymap.set("n", "`", "i")
