@@ -2,9 +2,22 @@ return {
 	{
 		"nvim-telescope/telescope.nvim",
 		tag = "0.1.6",
-		dependencies = { "nvim-lua/plenary.nvim", "BurntSushi/ripgrep" },
+		dependencies = {
+			"nvim-lua/plenary.nvim",
+			"BurntSushi/ripgrep",
+			"ahmedkhalf/project.nvim",
+			"olimorris/persisted.nvim",
+		},
 		config = function()
+			local telescope = require("telescope")
 			local builtin = require("telescope.builtin")
+
+			-- projects extension integration for telescope
+			telescope.load_extension("projects")
+
+			-- persisted extension for session management
+			telescope.load_extension("persisted")
+
 			vim.keymap.set("n", "<leader>ff", builtin.find_files, {})
 			vim.keymap.set("n", "<leader>fg", builtin.live_grep, {})
 			vim.keymap.set("n", "<leader>gq", builtin.git_branches, {})

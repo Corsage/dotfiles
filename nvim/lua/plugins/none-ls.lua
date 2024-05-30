@@ -3,11 +3,14 @@ return {
 	dependencies = {
 		"nvimtools/none-ls-extras.nvim",
 	},
+	lazy = true,
+	event = { "BufReadPre", "BufNewFile" },
 	config = function()
 		local null_ls = require("null-ls")
 		local augroup = vim.api.nvim_create_augroup("LspFormatting", {})
 
 		null_ls.setup({
+			border = "single",
 			sources = {
 				null_ls.builtins.formatting.stylua,
 				null_ls.builtins.formatting.prettier,
