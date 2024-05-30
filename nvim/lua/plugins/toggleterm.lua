@@ -67,7 +67,7 @@ return {
 		vim.cmd([[ autocmd! TermOpen term://* lua set_terminal_keymaps() ]])
 
 		-- toggleterm
-		vim.keymap.set({ "n", "t" }, "<C-t>", "<cmd>lua main_term_toggle()<CR>")
+		vim.keymap.set({ "n", "t" }, "<leader>t", "<cmd>lua main_term_toggle()<CR>")
 		vim.keymap.set({ "n", "t" }, "<C-T>", "<cmd>lua secondary_term_toggle()<CR>")
 
 	end,
